@@ -5,6 +5,7 @@ library(dplyr)
 library(httr)
 library(jsonlite)
 library(shinyjs)
+library(bslib)
 
 # Sample dataset - mpg data from ggplot2
 data <- mpg
