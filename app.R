@@ -176,9 +176,8 @@ server <- function(input, output, session) {
       "- Multiple card elements with card-header elements ",
       "- Select inputs, a textarea, and buttons ",
       "- Plots (pngs) and tables within card elements ",
-      "- you can also apply new styles to the following classes: table, paginate_button,  selectize-input, bslib-grid, form-group ",
+      "- you can also apply new styles to the following classes: btn, pagination, table, paginate_button,  selectize-input, bslib-grid, form-group ",
       "Make the styles very dramatic and visually obvious - use bright colors, borders, and other elements that will make it clear the styling has been applied.",
-      "This was the last one (if available): ", css_reactive()
     )
 
     # Call Anthropic API
