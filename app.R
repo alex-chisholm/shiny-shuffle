@@ -7,27 +7,21 @@ library(jsonlite)
 library(shinyjs)
 library(bslib)
 
-# Sample dataset - mpg data from ggplot2
 data <- mpg
+api_key <- Sys.getenv("ANTHROPIC_API_KEY")
 
-# UI
 ui <- page_fluid(
 
-  # Include shinyjs
   shinyjs::useShinyjs(),
 
-  # Title
   h1("Shiny Style Shuffle"),
 
-  # Main layout
   layout_columns(
     col_widths = c(4, 8),
 
-    # Left column - Controls
     card(
       card_header("Data Controls"),
 
-      # Dataset filters
       selectInput("manufacturer", "Manufacturer:",
                   choices = c("All", unique(data$manufacturer))),
 
@@ -37,7 +31,6 @@ ui <- page_fluid(
       selectInput("trans", "Transmission:",
                   choices = c("All", unique(data$trans))),
 
-      # AI styling controls
       textAreaInput("prompt", "AI Styling Prompt:",
                     placeholder = "Example: Make this app look like a New York Times front page",
                     height = "100px"),
@@ -46,16 +39,13 @@ ui <- page_fluid(
 
       verbatimTextOutput("apiStatus"),
 
-      # Add an output to show the CSS being applied (for debugging)
       h4("Applied CSS:"),
       verbatimTextOutput("cssOutput")
     ),
 
-    # Right column - Visualizations
     card(
       card_header("Data Visualization"),
 
-      # Plots side by side in a row
       layout_columns(
         col_widths = c(6, 6),
         card(
@@ -68,7 +58,6 @@ ui <- page_fluid(
         )
       ),
 
-      # Data table below the plots
       card(
         card_header("Data Table"),
         DTOutput("dataTable")
@@ -76,18 +65,14 @@ ui <- page_fluid(
     )
   ),
 
-  # CSS container to inject AI-generated styles - placed in head
   tags$head(
     tags$style(id = "ai-styles", "")
   )
 )
 
-# Server
 server <- function(input, output, session) {
-  # Store CSS code in a reactive value for display and application
   css_reactive <- reactiveVal("")
 
-  # Reactive data based on filters
   filtered_data <- reactive({
     result <- data
 
@@ -106,7 +91,6 @@ server <- function(input, output, session) {
     return(result)
   })
 
-  # Scatter plot
   output$scatterPlot <- renderPlot({
     ggplot(filtered_data(), aes(x = displ, y = hwy, color = class)) +
       geom_point(size = 3, alpha = 0.7) +
@@ -119,7 +103,6 @@ server <- function(input, output, session) {
       theme_minimal()
   })
 
-  # Bar plot
   output$barPlot <- renderPlot({
     avg_mpg <- filtered_data() %>%
       group_by(class) %>%
@@ -138,7 +121,6 @@ server <- function(input, output, session) {
       guides(fill = FALSE)
   })
 
-  # Data table
   output$dataTable <- renderDT({
     datatable(
       filtered_data(),
@@ -147,17 +129,12 @@ server <- function(input, output, session) {
     )
   })
 
-  # Display the CSS being applied
   output$cssOutput <- renderText({
     css_reactive()
   })
 
-  # AI styling functionality
   observeEvent(input$styleBtn, {
     req(input$prompt)
-
-    # API key from environment variable
-    api_key <- Sys.getenv("ANTHROPIC_API_KEY")
 
     if (api_key == "") {
       output$apiStatus <- renderText("ERROR: ANTHROPIC_API_KEY environment variable not set.")
@@ -166,7 +143,6 @@ server <- function(input, output, session) {
 
     output$apiStatus <- renderText("Requesting styling from Anthropic Claude...")
 
-    # Use a simpler prompt that clearly requests only CSS
     styling_prompt <- paste0(
       "I need CSS to style a Shiny app based on this theme: '",
       input$prompt,
@@ -180,7 +156,6 @@ server <- function(input, output, session) {
       "Make the styles very dramatic and visually obvious - use bright colors, borders, and other elements that will make it clear the styling has been applied.",
     )
 
-    # Call Anthropic API
     tryCatch({
       response <- POST(
         url = "https://api.anthropic.com/v1/messages",
@@ -203,11 +178,9 @@ server <- function(input, output, session) {
       )
 
       if (status_code(response) == 200) {
-        # Parse response
         response_content <- content(response, "text", encoding = "UTF-8")
         result <- fromJSON(response_content)
 
-        # Extract CSS code
         css_code <- ""
 
         if (is.list(result) && !is.null(result$content) &&
@@ -222,14 +195,10 @@ server <- function(input, output, session) {
           return()
         }
 
-        # Clean up CSS code - remove any markdown code blocks or comments
         css_code <- gsub("```css|```", "", css_code)
 
-        # Update reactive value with CSS
         css_reactive(css_code)
 
-        # Apply CSS to the app using direct DOM manipulation
-        # This approach is more reliable than using textContent
         js_code <- paste0('
           const styleElement = document.getElementById("ai-styles");
           styleElement.innerHTML = ', toJSON(css_code), ';
@@ -247,5 +216,4 @@ server <- function(input, output, session) {
   })
 }
 
-# Run the app
 shinyApp(ui, server)
