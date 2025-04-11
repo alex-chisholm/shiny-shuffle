@@ -153,7 +153,7 @@ server <- function(input, output, session) {
       "- Select inputs, a textarea, and buttons ",
       "- Plots (pngs) and tables within card elements ",
       "- you can also apply new styles to the following classes: btn, pagination, table, paginate_button,  selectize-input, bslib-grid, form-group ",
-      "Make the styles very dramatic and visually obvious - use bright colors, borders, and other elements that will make it clear the styling has been applied.",
+      "Make the styles very dramatic and visually obvious - use bright colors, borders, and other elements that will make it clear the styling has been applied."
     )
 
     tryCatch({
